@@ -40,7 +40,11 @@ function doIframe() {
   
   let closeButton = document.createElement("button");
   closeButton.innerText = "Close";
-  closeButton.addEventListener("click", () => { iframe.remove(); closeButton.remove(); br.remove(); });
+  closeButton.addEventListener("click", () => {
+    if(confirm("Are you sure?")) {
+      iframe.remove(); closeButton.remove(); br.remove();
+    }
+  });
   document.body.appendChild(closeButton);
 }
 
