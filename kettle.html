@@ -189,10 +189,7 @@ function quine() {
           .filter(card => card.id != "bootstrap")
           .map(card => cardToHtml(card))
       ),
-      h("button", {id: "save"}, "Save"),
-      h("button", {id: "iframe"}, "Iframe"),
       h("div", {id: "cards"}),
-      h("button", {id: "newcard"}, "New Card")
     )
   );
   return "<!DOCTYPE html>\n" + htm.outerHTML;
@@ -232,19 +229,19 @@ function ready() {
   });
 
   //write out card editors
-  let cardContainer = document.querySelector("#cards");
-  cardsArray.forEach(card => cardContainer.appendChild(makeCardViewer(card)));
+  let cardContainer = h("div", {id: "cards"}, cardsArray.map(card => makeCardViewer(card)));
+  document.body.insertAdjacentElement("beforeend", cardContainer);
   
   //add quine buttons
-  const saveButton = h("button", {}, "Save (new)");
+  const saveButton = h("button", {}, "Save Html");
   saveButton.addEventListener("click", doSave);
   document.body.insertAdjacentElement("afterbegin", saveButton);
 
-  const iframeButton = h("button", {}, "Iframe (new)");
+  const iframeButton = h("button", {}, "Iframe");
   iframeButton.addEventListener("click", doIframe);
   saveButton.insertAdjacentElement("afterend", iframeButton);
 
-  const newButton = h("button", {}, "New Card (new)");
+  const newButton = h("button", {}, "New Card");
   newButton.addEventListener("click", makeNewCard);
   document.body.insertAdjacentElement("beforeend", newButton);
 
@@ -255,4 +252,4 @@ function ready() {
 document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="NewCard">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">yeppers</kettle-prop>
-</kettle-card></div><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
+</kettle-card></div><div id="cards"></div></body></html>
