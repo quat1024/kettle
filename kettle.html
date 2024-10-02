@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script id="bootstrap" type="text/javascript">
+function quine() {
+  return `<!DOCTYPE html>
+<html>
+  <head>
+    <script id="bootstrap" type="text/javascript">
+${document.getElementById("bootstrap").innerText}
+    </scr` + `ipt>
+  </head>
+  <body>
+    <textarea id="code"></textarea>
+    <button id="save">Save</button>
+  </body>
+</html>
+`;
+}
+
+function doSave() {
+  let a = document.createElement("a");
+  let url = window.URL.createObjectURL(new Blob([quine()]));
+  a.href=url;
+  a.download="kettle.html";
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+function ready() {
+  document.getElementById("code").value = document.getElementById("bootstrap").innerText;
+}
+document.addEventListener("DOMContentLoaded", ready);
+    </script>
+  </head>
+  <body>
+    <textarea id="code"></textarea>
+    <button id="save">Save</button>
+  </body>
+</html>
