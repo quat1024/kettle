@@ -95,14 +95,15 @@ function makeCardEditor(card) {
     h("input", {className: "args", type: "text", value: card.args ? card.args : ""}),
     h("br"),
     h("textarea", {rows: 15, cols: 80}, card["text"]),
-    h("button", {}, "Save")
+    h("button", {className: "save"}, "Save"),
+    h("button", {className: "delete"}, "Delete")
   );
 
   const idField = htm.querySelector(".id");
   const argsField = htm.querySelector(".args");
   const textField = htm.querySelector("textarea");
 
-  htm.querySelector("button").addEventListener("click", () => {
+  htm.querySelector(".save").addEventListener("click", () => {
     const newCard = {
       id: idField.value,
       args: argsField.value,
@@ -114,6 +115,13 @@ function makeCardEditor(card) {
     const viewer = makeCardViewer(newCard);
     htm.insertAdjacentElement("beforebegin", viewer);
     htm.remove();
+  });
+  
+  htm.querySelector(".delete").addEventListener("click", () => {
+    if(confirm(`Are you sure you want to delete ${oldId}?`)) {
+      deleteCardWithId(oldId);
+      htm.remove();
+    }
   });
   
   return htm;
@@ -185,8 +193,6 @@ function quine() {
       h("button", {id: "newcard"}, "New Card")
     )
   );
-  console.log(htm);
-  console.log(htm.outerHtml);
   return "<!DOCTYPE html>\n" + htm.outerHTML;
 }
 
@@ -214,13 +220,6 @@ function ready() {
   document.getElementById("code").value = document.getElementById("bootstrap").innerText;
   document.getElementById("save").addEventListener("click", doSave);
   document.getElementById("iframe").addEventListener("click", doIframe);
-
-  updateOrAddCard({id: "test", args: "foo, bar", text: `
-    console.log("hello from a freakin card");
-    console.log("foo", foo);
-    console.log("bar", bar);
-    return 69;`});
-  console.log(callCard("test", "fooarg", "bar arg"));
   
   //read all cards
   Array.from(document.querySelectorAll("kettle-card"))
@@ -232,13 +231,4 @@ function ready() {
   
   document.getElementById("newcard").addEventListener("click", makeNewCard);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="mycard">
-  <kettle-prop data-prop="args"></kettle-prop>
-  <kettle-prop data-prop="text">undefined</kettle-prop>
-</kettle-card><kettle-card id="thisIsMyCard">
-  <kettle-prop data-prop="args">hmmmmm</kettle-prop>
-  <kettle-prop data-prop="text">console.log("welcome to my card");</kettle-prop>
-</kettle-card><kettle-card id="test">
-  <kettle-prop data-prop="args">foo, bar</kettle-prop>
-  <kettle-prop data-prop="text">console.log("welcome to my island");</kettle-prop>
-</kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
