@@ -41,18 +41,6 @@ function cardCallable(id) {
   return eval(`(${card["args"]}) => { ${card["text"]} }`);
 }
 
-function cardToHtml(card) {
-  const kvs = [];
-  for(const prop in card) {
-    if(prop === "id") continue;
-    kvs.push("\n  ");
-    kvs.push(h("kettle-prop", {"data-prop": prop}, card[prop]));
-  }
-  kvs.push("\n");
-  const htm = h("kettle-card", {id: card.id}, kvs);
-  return htm;
-}
-
 function htmlToCard(html) {
   const card = {};
   card.id = html.id;
@@ -64,34 +52,8 @@ function htmlToCard(html) {
   return card;
 }
 
-function recursiveAssign(target, src) {
-  for(const key in src) {
-    if(typeof src[key] == "object") {
-      target[key] = target[key] || {};
-      recursiveAssign(target[key], src[key]);
-    } else target[key] = src[key];
-  }
-}
-
-function h(elem, attrs, ...children) {
-  attrs = attrs || {};
-
-  let e = document.createElement(elem);
-  recursiveAssign(e, attrs);
-  for(const key of Object.keys(attrs)) {
-    if(key.startsWith("data-")) {
-      e.dataset[key.slice(5)] = attrs[key];
-    }
-  }
-  children.flat(Infinity).forEach(child => {
-    if(child instanceof HTMLElement) e.appendChild(child);
-    else e.appendChild(document.createTextNode(child));
-  });
-  return e;
-}
-
 function ready() {
-  //read all cards (won't contain me, since i'm a script)
+  //read all cards out of the html (won't contain me, since i'm actually a script)
   Array.from(document.querySelectorAll("kettle-card"))
     .map(htm => htmlToCard(htm))
     .forEach(card => updateOrAddCard(card));
@@ -102,6 +64,9 @@ function ready() {
     args: "",
     text: document.getElementById("bootstrap").innerText
   });
+
+  //h
+  const h = cardCallable("h");
 
   //write out card editors
   const makeCardViewer = cardCallable("makeCardViewer");
@@ -122,51 +87,84 @@ function ready() {
   newButton.addEventListener("click", () => cardCallable("makeNewCard")());
   document.body.insertAdjacentElement("beforeend", newButton);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="quine">
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="recursiveAssign">
+  <kettle-prop data-prop="args">target, src</kettle-prop>
+  <kettle-prop data-prop="text">const recurse = cardCallable("recursiveAssign");
+
+for(const key in src) {
+  if(typeof src[key] == "object") {
+    target[key] = target[key] || {};
+    recurse(target[key], src[key]);
+  } else target[key] = src[key];
+}</kettle-prop>
+</kettle-card><kettle-card id="h">
+  <kettle-prop data-prop="args">elem, attrs, ...children</kettle-prop>
+  <kettle-prop data-prop="text">const recursiveAssign = cardCallable("recursiveAssign");
+
+attrs = attrs || {};
+
+let e = document.createElement(elem);
+recursiveAssign(e, attrs);
+for(const key of Object.keys(attrs)) {
+  if(key.startsWith("data-")) {
+    e.dataset[key.slice(5)] = attrs[key];
+  }
+}
+children.flat(Infinity).forEach(child =&gt; {
+  if(child instanceof HTMLElement) e.appendChild(child);
+  else e.appendChild(document.createTextNode(child));
+});
+return e;</kettle-prop>
+</kettle-card><kettle-card id="iframe">
   <kettle-prop data-prop="args"></kettle-prop>
-  <kettle-prop data-prop="text">const htm = h("html", {}, 
-  h("head", {},
-    h("script", {id: "bootstrap", type: "text/javascript"},
-      getCard("bootstrap").text
-    )
-  ),
-  h("body", {},
-    //Cheap hack to prevent card elements from showing thru
-    h("div", {style: { display: "none" }},
-      cardsArray
-        //The bootstrap card is stored as a script, not a custom html element
-        .filter(card =&gt; card.id != "bootstrap")
-        .map(card =&gt; cardToHtml(card))
-    )
-  )
+  <kettle-prop data-prop="text">const quine = cardCallable("quine");
+const h = cardCallable("h");
+
+let bag = h("div", {},
+  h("br"),
+  h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
+  h("button", {}, "Close")
 );
-return "&lt;!DOCTYPE html&gt;\n" + htm.outerHTML;</kettle-prop>
-</kettle-card><kettle-card id="makeCardViewer">
-  <kettle-prop data-prop="args">card</kettle-prop>
+
+bag.querySelector("button").addEventListener("click", () =&gt; {
+  if(confirm("Are you sure?")) bag.remove();
+});
+document.body.appendChild(bag);</kettle-prop>
+</kettle-card><kettle-card id="save">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">const quine = cardCallable("quine");
+const h = cardCallable("h");
+
+let url = window.URL.createObjectURL(new Blob([quine()]));
+let a = h("a", {href: url, download: "kettle.html"});
+a.click();
+window.URL.revokeObjectURL(url);</kettle-prop>
+</kettle-card><kettle-card id="makeNewCard">
+  <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
 
-const htm = h("div", {},
-  h("h2", {innerText: card.id}),
-  card["args"] ? h("p", {}, "args: ", card["args"]) : [],
-  card["text"] ? h("p", {}, "text: ", h("pre", {}, card["text"])) : [],
-  h("button", {className: "edit"}, "Edit"),
-  h("button", {className: "run"}, "Call (no args)"),
-);
+let newName = "NewCard";
+if(getCard(newName)) {
+  let disambig = 1;
+  do {
+    newName = `NewCard${disambig}`;
+    disambig++;
+  } while(getCard(newName) &amp;&amp; disambig &lt;= 100);
+  if(disambig == 100) {
+    console.log("Can't make new card");
+    return;
+  }
+}
 
-htm.querySelector(".edit").addEventListener("click", () =&gt; {
-  const editor = makeCardEditor(card);
-  htm.insertAdjacentElement("beforebegin", editor);
-  htm.remove();
-});
+const card = {id: newName, args: "", text: ""};
+updateOrAddCard(card);
 
-htm.querySelector(".run").addEventListener("click", () =&gt; {
-  cardCallable(card.id)();
-});
-
-return htm;</kettle-prop>
+const editor = makeCardEditor(card);
+document.getElementById("cards").insertAdjacentElement("beforeend", editor);</kettle-prop>
 </kettle-card><kettle-card id="makeCardEditor">
   <kettle-prop data-prop="args">card</kettle-prop>
   <kettle-prop data-prop="text">const makeCardViewer = cardCallable("makeCardViewer");
+const h = cardCallable("h");
 
 const oldId = card.id;
 
@@ -206,48 +204,62 @@ htm.querySelector(".delete").addEventListener("click", () =&gt; {
 });
 
 return htm;</kettle-prop>
-</kettle-card><kettle-card id="makeNewCard">
-  <kettle-prop data-prop="args"></kettle-prop>
+</kettle-card><kettle-card id="makeCardViewer">
+  <kettle-prop data-prop="args">card</kettle-prop>
   <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
+const h = cardCallable("h");
 
-let newName = "NewCard";
-if(getCard(newName)) {
-  let disambig = 1;
-  do {
-    newName = `NewCard${disambig}`;
-    disambig++;
-  } while(getCard(newName) &amp;&amp; disambig &lt;= 100);
-  if(disambig == 100) {
-    console.log("Can't make new card");
-    return;
-  }
-}
-
-const card = {id: newName, args: "", text: ""};
-updateOrAddCard(card);
-
-const editor = makeCardEditor(card);
-document.getElementById("cards").insertAdjacentElement("beforeend", editor);</kettle-prop>
-</kettle-card><kettle-card id="save">
-  <kettle-prop data-prop="args"></kettle-prop>
-  <kettle-prop data-prop="text">const quine = cardCallable("quine");
-
-let url = window.URL.createObjectURL(new Blob([quine()]));
-let a = h("a", {href: url, download: "kettle.html"});
-a.click();
-window.URL.revokeObjectURL(url);</kettle-prop>
-</kettle-card><kettle-card id="iframe">
-  <kettle-prop data-prop="args"></kettle-prop>
-  <kettle-prop data-prop="text">let quine = cardCallable("quine");
-
-let bag = h("div", {},
-  h("br"),
-  h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
-  h("button", {}, "Close")
+const htm = h("div", {},
+  h("h2", {innerText: card.id}),
+  card["args"] ? h("p", {}, "args: ", card["args"]) : [],
+  card["text"] ? h("p", {}, "text: ", h("pre", {}, card["text"])) : [],
+  h("button", {className: "edit"}, "Edit"),
+  h("button", {className: "run"}, "Call (no args)"),
 );
 
-bag.querySelector("button").addEventListener("click", () =&gt; {
-  if(confirm("Are you sure?")) bag.remove();
+htm.querySelector(".edit").addEventListener("click", () =&gt; {
+  const editor = makeCardEditor(card);
+  htm.insertAdjacentElement("beforebegin", editor);
+  htm.remove();
 });
-document.body.appendChild(bag);</kettle-prop>
+
+htm.querySelector(".run").addEventListener("click", () =&gt; {
+  cardCallable(card.id)();
+});
+
+return htm;</kettle-prop>
+</kettle-card><kettle-card id="cardToHtml">
+  <kettle-prop data-prop="args">card</kettle-prop>
+  <kettle-prop data-prop="text">const h = cardCallable("h");
+
+const kvs = [];
+for(const prop in card) {
+  if(prop === "id") continue;
+  kvs.push("\n  ");
+  kvs.push(h("kettle-prop", {"data-prop": prop}, card[prop]));
+}
+kvs.push("\n");
+return h("kettle-card", {id: card.id}, kvs);</kettle-prop>
+</kettle-card><kettle-card id="quine">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">const h = cardCallable("h");
+const cardToHtml = cardCallable("cardToHtml");
+
+const htm = h("html", {}, 
+  h("head", {},
+    h("script", {id: "bootstrap", type: "text/javascript"},
+      getCard("bootstrap").text
+    )
+  ),
+  h("body", {},
+    //Cheap hack to prevent card elements from showing thru
+    h("div", {style: { display: "none" }},
+      cardsArray
+        //The bootstrap card is stored as a script, not a custom html element
+        .filter(card =&gt; card.id != "bootstrap")
+        .map(card =&gt; cardToHtml(card))
+    )
+  )
+);
+return "&lt;!DOCTYPE html&gt;\n" + htm.outerHTML;</kettle-prop>
 </kettle-card></div></body></html>
