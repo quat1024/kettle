@@ -2,6 +2,7 @@
 <html>
   <head>
     <script id="bootstrap" type="text/javascript">
+
 function quine() {
   return `<!DOCTYPE html>
 <html>
@@ -11,7 +12,7 @@ ${document.getElementById("code").value}
     </scr` + `ipt>
   </head>
   <body>
-    <textarea id="code"></textarea>
+    <textarea id="code" rows="40" cols="80"></textarea>
     <button id="save">Save</button>
   </body>
 </html>
@@ -32,6 +33,7 @@ function ready() {
   document.getElementById("save").addEventListener("click", doSave);
 }
 document.addEventListener("DOMContentLoaded", ready);
+    
     </script>
   </head>
   <body>
