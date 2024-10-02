@@ -1,51 +1,61 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <script id="bootstrap" type="text/javascript">
+<html><head><script id="bootstrap" type="text/javascript">function recursiveAssign(target, src) {
+  for(const key in src) {
+    if(typeof src[key] == "object") {
+      target[key] = target[key] || {};
+      recursiveAssign(target[key], src[key]);
+    } else target[key] = src[key];
+  }
+}
+
+function h(elem, attrs, ...children) {
+  attrs = attrs || {};
+
+  let e = document.createElement(elem);
+  recursiveAssign(e, attrs);
+  children.flat(Infinity).forEach(child => {
+    if(child instanceof HTMLElement) e.appendChild(child);
+    else e.appendChild(document.createTextNode(child));
+  });
+  return e;
+}
+
 function quine() {
-  return `<!DOCTYPE html>
-<html>
-  <head>
-    <script id="bootstrap" type="text/javascript">
-${document.getElementById("code").value.trim()}
-    </scr` + `ipt>
-  </head>
-  <body>
-    <textarea id="code" rows="40" cols="80"></textarea>
-    <button id="save">Save</button>
-    <button id="iframe">Iframe</button>
-  </body>
-</html>
-`;
+  const htm = h("html", {}, 
+    h("head", {},
+      h("script", {id: "bootstrap", type: "text/javascript"},
+        document.getElementById("code").value.trim()
+      )
+    ),
+    h("body", {},
+      h("textarea", {id: "code", rows: "40", cols: "80"}),
+      h("button", {id: "save"}, "Save"),
+      h("button", {id: "iframe"}, "Iframe")
+    )
+  );
+  console.log(htm);
+  console.log(htm.outerHtml);
+  return "<!DOCTYPE html>\n" + htm.outerHTML;
 }
 
 function doSave() {
-  let a = document.createElement("a");
   let url = window.URL.createObjectURL(new Blob([quine()]));
-  a.href=url;
-  a.download="kettle.html";
+  let a = h("a", {href: url, download: "kettle.html"});
   a.click();
   window.URL.revokeObjectURL(url);
 }
 
 function doIframe() {
-  let br = document.createElement("br");
-  document.body.appendChild(br);
-
-  let iframe = document.createElement("iframe");
-  iframe.style.width = "95vw";
-  iframe.style.height = "95vh";
-  iframe.srcdoc = quine();
-  document.body.appendChild(iframe);
+  let bag = h("div", {},
+    h("br"),
+    h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
+    h("button", {}, "Close")
+  );
   
-  let closeButton = document.createElement("button");
-  closeButton.innerText = "Close";
-  closeButton.addEventListener("click", () => {
-    if(confirm("Are you sure?")) {
-      iframe.remove(); closeButton.remove(); br.remove();
-    }
+  bag.querySelector("button").addEventListener("click", () => {
+    if(confirm("Are you sure?")) bag.remove();
   });
-  document.body.appendChild(closeButton);
+  document.body.appendChild(bag);
 }
 
 function ready() {
@@ -53,12 +63,4 @@ function ready() {
   document.getElementById("save").addEventListener("click", doSave);
   document.getElementById("iframe").addEventListener("click", doIframe);
 }
-document.addEventListener("DOMContentLoaded", ready);
-    </script>
-  </head>
-  <body>
-    <textarea id="code" rows="40" cols="80"></textarea>
-    <button id="save">Save</button>
-    <button id="iframe">Iframe</button>
-  </body>
-</html>
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><textarea id="code" rows="40" cols="80"></textarea><button id="save">Save</button><button id="iframe">Iframe</button></body></html>
