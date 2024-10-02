@@ -29,6 +29,7 @@ function doSave() {
 
 function ready() {
   document.getElementById("code").value = document.getElementById("bootstrap").innerText;
+  document.getElementById("save").addEventListener("click", doSave);
 }
 document.addEventListener("DOMContentLoaded", ready);
     </script>
