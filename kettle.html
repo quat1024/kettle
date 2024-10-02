@@ -219,9 +219,6 @@ function doIframe() {
 }
 
 function ready() {
-  document.getElementById("save").addEventListener("click", doSave);
-  document.getElementById("iframe").addEventListener("click", doIframe);
-  
   //read all cards except for me
   Array.from(document.querySelectorAll("kettle-card"))
     .map(htm => htmlToCard(htm))
@@ -234,9 +231,28 @@ function ready() {
     text: document.getElementById("bootstrap").innerText
   });
 
+  //write out card editors
   let cardContainer = document.querySelector("#cards");
   cardsArray.forEach(card => cardContainer.appendChild(makeCardViewer(card)));
   
+  //add quine buttons
+  const saveButton = h("button", {}, "Save (new)");
+  saveButton.addEventListener("click", doSave);
+  document.body.insertAdjacentElement("afterbegin", saveButton);
+
+  const iframeButton = h("button", {}, "Iframe (new)");
+  iframeButton.addEventListener("click", doIframe);
+  saveButton.insertAdjacentElement("afterend", iframeButton);
+
+  const newButton = h("button", {}, "New Card (new)");
+  newButton.addEventListener("click", makeNewCard);
+  document.body.insertAdjacentElement("beforeend", newButton);
+
+  document.getElementById("save").addEventListener("click", doSave);
+  document.getElementById("iframe").addEventListener("click", doIframe);
   document.getElementById("newcard").addEventListener("click", makeNewCard);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"></div><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="NewCard">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">yeppers</kettle-prop>
+</kettle-card></div><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
