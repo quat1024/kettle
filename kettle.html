@@ -97,7 +97,8 @@ for(const key in src) {
     recurse(target[key], src[key]);
   } else target[key] = src[key];
 }</kettle-prop>
-</kettle-card><kettle-card id="h">
+</kettle-card>
+<kettle-card id="h">
   <kettle-prop data-prop="args">elem, attrs, ...children</kettle-prop>
   <kettle-prop data-prop="text">const recursiveAssign = cardCallable("recursiveAssign");
 
@@ -115,7 +116,8 @@ children.flat(Infinity).forEach(child =&gt; {
   else e.appendChild(document.createTextNode(child));
 });
 return e;</kettle-prop>
-</kettle-card><kettle-card id="iframe">
+</kettle-card>
+<kettle-card id="iframe">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">const quine = cardCallable("quine");
 const h = cardCallable("h");
@@ -130,7 +132,8 @@ bag.querySelector("button").addEventListener("click", () =&gt; {
   if(confirm("Are you sure?")) bag.remove();
 });
 document.body.appendChild(bag);</kettle-prop>
-</kettle-card><kettle-card id="save">
+</kettle-card>
+<kettle-card id="save">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">const quine = cardCallable("quine");
 const h = cardCallable("h");
@@ -139,7 +142,8 @@ let url = window.URL.createObjectURL(new Blob([quine()]));
 let a = h("a", {href: url, download: "kettle.html"});
 a.click();
 window.URL.revokeObjectURL(url);</kettle-prop>
-</kettle-card><kettle-card id="makeNewCard">
+</kettle-card>
+<kettle-card id="makeNewCard">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
 
@@ -161,7 +165,8 @@ updateOrAddCard(card);
 
 const editor = makeCardEditor(card);
 document.getElementById("cards").insertAdjacentElement("beforeend", editor);</kettle-prop>
-</kettle-card><kettle-card id="makeCardEditor">
+</kettle-card>
+<kettle-card id="makeCardEditor">
   <kettle-prop data-prop="args">card</kettle-prop>
   <kettle-prop data-prop="text">const makeCardViewer = cardCallable("makeCardViewer");
 const h = cardCallable("h");
@@ -204,7 +209,8 @@ htm.querySelector(".delete").addEventListener("click", () =&gt; {
 });
 
 return htm;</kettle-prop>
-</kettle-card><kettle-card id="makeCardViewer">
+</kettle-card>
+<kettle-card id="makeCardViewer">
   <kettle-prop data-prop="args">card</kettle-prop>
   <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
 const h = cardCallable("h");
@@ -228,7 +234,8 @@ htm.querySelector(".run").addEventListener("click", () =&gt; {
 });
 
 return htm;</kettle-prop>
-</kettle-card><kettle-card id="cardToHtml">
+</kettle-card>
+<kettle-card id="cardToHtml">
   <kettle-prop data-prop="args">card</kettle-prop>
   <kettle-prop data-prop="text">const h = cardCallable("h");
 
@@ -240,10 +247,29 @@ for(const prop in card) {
 }
 kvs.push("\n");
 return h("kettle-card", {id: card.id}, kvs);</kettle-prop>
-</kettle-card><kettle-card id="quine">
+</kettle-card>
+<kettle-card id="intersperse">
+  <kettle-prop data-prop="args">array, gap</kettle-prop>
+  <kettle-prop data-prop="text">if(array.length &lt;= 1) return array;
+
+const result = [array[0]];
+for(let i = 1; i &lt; array.length; i++) {
+  result.push(gap);
+  result.push(array[i]);
+}
+return result;</kettle-prop>
+</kettle-card>
+<kettle-card id="quine">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">const h = cardCallable("h");
 const cardToHtml = cardCallable("cardToHtml");
+const intersperse = cardCallable("intersperse");
+
+//The bootstrap card is stored as a script, not a custom html element
+let serializedCards = cardsArray
+  .filter(card =&gt; card.id != "bootstrap")
+  .map(card =&gt; cardToHtml(card));
+serializedCards = intersperse(serializedCards, "\n");
 
 const htm = h("html", {}, 
   h("head", {},
@@ -253,13 +279,14 @@ const htm = h("html", {},
   ),
   h("body", {},
     //Cheap hack to prevent card elements from showing thru
-    h("div", {style: { display: "none" }},
-      cardsArray
-        //The bootstrap card is stored as a script, not a custom html element
-        .filter(card =&gt; card.id != "bootstrap")
-        .map(card =&gt; cardToHtml(card))
-    )
+    h("div", {style: { display: "none" }}, serializedCards)
   )
 );
 return "&lt;!DOCTYPE html&gt;\n" + htm.outerHTML;</kettle-prop>
+</kettle-card>
+<kettle-card id="logQuine">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">const quine = cardCallable("quine");
+
+console.log(quine());</kettle-prop>
 </kettle-card></div></body></html>
