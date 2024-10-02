@@ -69,13 +69,18 @@ function makeCardViewer(card) {
     h("h2", {innerText: card.id}),
     card["args"] ? h("p", {}, "args: ", card["args"]) : [],
     card["text"] ? h("p", {}, "text: ", h("pre", {}, card["text"])) : [],
-    h("button", {}, "Edit")
+    h("button", {className: "edit"}, "Edit"),
+    h("button", {className: "run"}, "Call (no args)"),
   );
   
-  htm.querySelector("button").addEventListener("click", () => {
+  htm.querySelector(".edit").addEventListener("click", () => {
     const editor = makeCardEditor(card);
     htm.insertAdjacentElement("beforebegin", editor);
     htm.remove();
+  });
+
+  htm.querySelector(".run").addEventListener("click", () => {
+    callCard(card.id);
   });
   
   return htm;
@@ -227,13 +232,13 @@ function ready() {
   
   document.getElementById("newcard").addEventListener("click", makeNewCard);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="test">
-  <kettle-prop data-prop="args">foo, bar</kettle-prop>
-  <kettle-prop data-prop="text">console.log(foo);</kettle-prop>
-</kettle-card><kettle-card id="mycard">
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="mycard">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">undefined</kettle-prop>
 </kettle-card><kettle-card id="thisIsMyCard">
   <kettle-prop data-prop="args">hmmmmm</kettle-prop>
   <kettle-prop data-prop="text">console.log("welcome to my card");</kettle-prop>
+</kettle-card><kettle-card id="test">
+  <kettle-prop data-prop="args">foo, bar</kettle-prop>
+  <kettle-prop data-prop="text">console.log("welcome to my island");</kettle-prop>
 </kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
