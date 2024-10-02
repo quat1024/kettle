@@ -2,19 +2,18 @@
 <html>
   <head>
     <script id="bootstrap" type="text/javascript">
-
-
 function quine() {
   return `<!DOCTYPE html>
 <html>
   <head>
     <script id="bootstrap" type="text/javascript">
-${document.getElementById("code").value}
+${document.getElementById("code").value.trim()}
     </scr` + `ipt>
   </head>
   <body>
     <textarea id="code" rows="40" cols="80"></textarea>
     <button id="save">Save</button>
+    <button id="iframe">Iframe</button>
   </body>
 </html>
 `;
@@ -29,11 +28,29 @@ function doSave() {
   window.URL.revokeObjectURL(url);
 }
 
+function doIframe() {
+  let br = document.createElement("br");
+  document.appendChild(br);
+
+  let iframe = document.createElement("iframe");
+  iframe.width = "90vw";
+  iframe.height = "90vh";
+  iframe.srcdoc = quine();
+  document.appendChild(iframe);
+  
+  let closeButton = document.createElement("button");
+  closeButton.innerText = "Close";
+  closeButton.addEventListener("click", () => { iframe.remove(); closeButton.remove(); br.remove(); });
+  document.appendChild(closeButton);
+}
+
 function ready() {
   document.getElementById("code").value = document.getElementById("bootstrap").innerText;
   document.getElementById("save").addEventListener("click", doSave);
+  document.getElementById("iframe").addEventListener("click", doIframe);
 }
 document.addEventListener("DOMContentLoaded", ready);
+    
     
     
     </script>
