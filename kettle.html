@@ -23,7 +23,7 @@ function updateOrAddCard(card) {
 function callCard(id, ...args) {
   //todo: janky, will need to check this is the right scope, and stuff
   const card = getCard(id);
-  return eval(`(${card["args"]}) => { ${card["js"]} }`)(...args);
+  return eval(`(${card["args"]}) => { ${card["text"]} }`)(...args);
 }
 
 class KettleCard extends HTMLElement {}
@@ -53,6 +53,53 @@ function htmlToCard(html) {
     }
   }
   return card;
+}
+
+function makeCardViewer(card) {
+  const htm = h("div", {},
+    h("h2", {innerText: card.id}),
+    card["args"] ? h("p", {}, "args: ", card["args"]) : [],
+    card["text"] ? h("p", {}, "text: ", h("pre", {}, card["text"])) : [],
+    h("button", {}, "Edit")
+  );
+  
+  htm.querySelector("button").addEventListener("click", () => {
+    const editor = makeCardEditor(card);
+    htm.insertAdjacentElement("beforebegin", editor);
+    htm.remove();
+  });
+  
+  return htm;
+}
+
+function makeCardEditor(card) {
+  const htm = h("div", {},
+    h("input", {className: "id", type: "text", value: card.id}),
+    h("br"),
+    h("input", {className: "args", type: "text", value: card.args ? card.args : ""}),
+    h("br"),
+    h("textarea", {rows: 15, cols: 80}, card["text"]),
+    h("button", {}, "Save")
+  );
+
+  const idField = htm.querySelector(".id");
+  const argsField = htm.querySelector(".args");
+  const textField = htm.querySelector("textarea");
+
+  htm.querySelector("button").addEventListener("click", () => {
+    const newCard = {
+      id: idField.value,
+      args: argsField.value,
+      text: textField.value
+    };
+    updateOrAddCard(newCard);
+    
+    const viewer = makeCardViewer(newCard);
+    htm.insertAdjacentElement("beforebegin", viewer);
+    htm.remove();
+  });
+  
+  return htm;
 }
 
 function recursiveAssign(target, src) {
@@ -95,7 +142,8 @@ function quine() {
       ),
       h("textarea", {id: "code", rows: "40", cols: "80", spellcheck: "false"}),
       h("button", {id: "save"}, "Save"),
-      h("button", {id: "iframe"}, "Iframe")
+      h("button", {id: "iframe"}, "Iframe"),
+      h("div", {id: "cards"})
     )
   );
   console.log(htm);
@@ -128,7 +176,7 @@ function ready() {
   document.getElementById("save").addEventListener("click", doSave);
   document.getElementById("iframe").addEventListener("click", doIframe);
 
-  updateOrAddCard({id: "test", args: "foo, bar", js: `
+  updateOrAddCard({id: "test", args: "foo, bar", text: `
     console.log("hello from a freakin card");
     console.log("foo", foo);
     console.log("bar", bar);
@@ -140,16 +188,17 @@ function ready() {
     .map(htm => htmlToCard(htm))
     .forEach(card => updateOrAddCard(card));
 
-  console.log(cardsArray);
+  let target = document.querySelector("#cards");
+  if(!target) {
+    target = h("div", {id: "cards"});
+    document.body.appendChild(target);
+  }
+  cardsArray.forEach(card => target.appendChild(makeCardViewer(card)));
 }
 document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="test">
   <kettle-prop data-prop="args">foo, bar</kettle-prop>
-  <kettle-prop data-prop="js">
-    console.log("hello from a freakin card");
-    console.log("foo", foo);
-    console.log("bar", bar);
-    return 69;</kettle-prop>
+  <kettle-prop data-prop="text">console.log(foo);</kettle-prop>
 </kettle-card><kettle-card id="mycard">
-  <kettle-prop data-prop="key">value</kettle-prop>
-  <kettle-prop data-prop="hello">world</kettle-prop>
-</kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button></body></html>
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">undefined</kettle-prop>
+</kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div></body></html>
