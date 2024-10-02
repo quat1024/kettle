@@ -20,6 +20,12 @@ function updateOrAddCard(card) {
   cardsArray.push(card);
 }
 
+function callCard(id, ...args) {
+  //todo: janky, will need to check this is the right scope, and stuff
+  const card = getCard(id);
+  return eval(`(${card["args"]}) => { ${card["js"]} }`)(...args);
+}
+
 class KettleCard extends HTMLElement {}
 customElements.define("kettle-card", KettleCard);
 
@@ -35,7 +41,6 @@ function cardToHtml(card) {
   }
   kvs.push("\n");
   const htm = h("kettle-card", {id: card.id}, kvs);
-  console.log("saved card", htm);
   return htm;
 }
 
@@ -47,7 +52,6 @@ function htmlToCard(html) {
       card[child.dataset.prop] = child.innerText;
     }
   }
-  console.log("parsed card", card);
   return card;
 }
 
@@ -78,8 +82,6 @@ function h(elem, attrs, ...children) {
 }
 
 function quine() {
-  updateOrAddCard({id: "mycard", key: "value", hello: "world"});
-  
   const htm = h("html", {}, 
     h("head", {},
       h("script", {id: "bootstrap", type: "text/javascript"},
@@ -125,12 +127,29 @@ function ready() {
   document.getElementById("code").value = document.getElementById("bootstrap").innerText;
   document.getElementById("save").addEventListener("click", doSave);
   document.getElementById("iframe").addEventListener("click", doIframe);
+
+  updateOrAddCard({id: "test", args: "foo, bar", js: `
+    console.log("hello from a freakin card");
+    console.log("foo", foo);
+    console.log("bar", bar);
+    return 69;`});
+  console.log(callCard("test", "fooarg", "bar arg"));
   
-  //add all cards
+  //read all cards
   Array.from(document.querySelectorAll("kettle-card"))
     .map(htm => htmlToCard(htm))
     .forEach(card => updateOrAddCard(card));
 
   console.log(cardsArray);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button></body></html>
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="test">
+  <kettle-prop data-prop="args">foo, bar</kettle-prop>
+  <kettle-prop data-prop="js">
+    console.log("hello from a freakin card");
+    console.log("foo", foo);
+    console.log("bar", bar);
+    return 69;</kettle-prop>
+</kettle-card><kettle-card id="mycard">
+  <kettle-prop data-prop="key">value</kettle-prop>
+  <kettle-prop data-prop="hello">world</kettle-prop>
+</kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button></body></html>
