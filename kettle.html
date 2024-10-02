@@ -68,69 +68,6 @@ function htmlToCard(html) {
   return card;
 }
 
-function makeCardViewer(card) {
-  const htm = h("div", {},
-    h("h2", {innerText: card.id}),
-    card["args"] ? h("p", {}, "args: ", card["args"]) : [],
-    card["text"] ? h("p", {}, "text: ", h("pre", {}, card["text"])) : [],
-    h("button", {className: "edit"}, "Edit"),
-    h("button", {className: "run"}, "Call (no args)"),
-  );
-  
-  htm.querySelector(".edit").addEventListener("click", () => {
-    const editor = makeCardEditor(card);
-    htm.insertAdjacentElement("beforebegin", editor);
-    htm.remove();
-  });
-
-  htm.querySelector(".run").addEventListener("click", () => {
-    callCard(card.id);
-  });
-  
-  return htm;
-}
-
-function makeCardEditor(card) {
-  const oldId = card.id;
-
-  const htm = h("div", {},
-    h("input", {className: "id", type: "text", value: card.id}),
-    h("br"),
-    h("input", {className: "args", type: "text", value: card.args ? card.args : ""}),
-    h("br"),
-    h("textarea", {rows: 15, cols: 80, spellcheck: "false"}, card["text"]),
-    h("button", {className: "save"}, "Save"),
-    h("button", {className: "delete"}, "Delete")
-  );
-
-  const idField = htm.querySelector(".id");
-  const argsField = htm.querySelector(".args");
-  const textField = htm.querySelector("textarea");
-
-  htm.querySelector(".save").addEventListener("click", () => {
-    const newCard = {
-      id: idField.value,
-      args: argsField.value,
-      text: textField.value
-    };
-    deleteCardWithId(oldId);
-    updateOrAddCard(newCard);
-    
-    const viewer = makeCardViewer(newCard);
-    htm.insertAdjacentElement("beforebegin", viewer);
-    htm.remove();
-  });
-  
-  htm.querySelector(".delete").addEventListener("click", () => {
-    if(confirm(`Are you sure you want to delete ${oldId}?`)) {
-      deleteCardWithId(oldId);
-      htm.remove();
-    }
-  });
-  
-  return htm;
-}
-
 function makeNewCard() {
   let newName = "NewCard";
   if(getCard(newName)) {
@@ -232,6 +169,7 @@ function ready() {
   });
 
   //write out card editors
+  const makeCardViewer = cardCallable("makeCardViewer");
   let cardContainer = h("div", {id: "cards"}, cardsArray.map(card => makeCardViewer(card)));
   document.body.insertAdjacentElement("beforeend", cardContainer);
   
@@ -275,8 +213,6 @@ return "&lt;!DOCTYPE html&gt;\n" + htm.outerHTML;</kettle-prop>
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">let quine = cardCallable("quine");
 
-console.log("calling code from a card !!");
-
 let bag = h("div", {},
   h("br"),
   h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
@@ -287,4 +223,69 @@ bag.querySelector("button").addEventListener("click", () =&gt; {
   if(confirm("Are you sure?")) bag.remove();
 });
 document.body.appendChild(bag);</kettle-prop>
+</kettle-card><kettle-card id="makeCardViewer">
+  <kettle-prop data-prop="args">card</kettle-prop>
+  <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
+
+const htm = h("div", {},
+  h("h2", {innerText: card.id}),
+  card["args"] ? h("p", {}, "args: ", card["args"]) : [],
+  card["text"] ? h("p", {}, "text: ", h("pre", {}, card["text"])) : [],
+  h("button", {className: "edit"}, "Edit"),
+  h("button", {className: "run"}, "Call (no args)"),
+);
+
+htm.querySelector(".edit").addEventListener("click", () =&gt; {
+  const editor = makeCardEditor(card);
+  htm.insertAdjacentElement("beforebegin", editor);
+  htm.remove();
+});
+
+htm.querySelector(".run").addEventListener("click", () =&gt; {
+  cardCallable(card.id)();
+});
+
+return htm;</kettle-prop>
+</kettle-card><kettle-card id="makeCardEditor">
+  <kettle-prop data-prop="args">card</kettle-prop>
+  <kettle-prop data-prop="text">const makeCardViewer = cardCallable("makeCardViewer");
+
+const oldId = card.id;
+
+const htm = h("div", {},
+  h("input", {className: "id", type: "text", value: card.id}),
+  h("br"),
+  h("input", {className: "args", type: "text", value: card.args ? card.args : ""}),
+  h("br"),
+  h("textarea", {rows: 15, cols: 80, spellcheck: "false"}, card["text"]),
+  h("button", {className: "save"}, "Save"),
+  h("button", {className: "delete"}, "Delete")
+);
+
+const idField = htm.querySelector(".id");
+const argsField = htm.querySelector(".args");
+const textField = htm.querySelector("textarea");
+
+htm.querySelector(".save").addEventListener("click", () =&gt; {
+  const newCard = {
+    id: idField.value,
+    args: argsField.value,
+    text: textField.value
+  };
+  deleteCardWithId(oldId);
+  updateOrAddCard(newCard);
+  
+  const viewer = makeCardViewer(newCard);
+  htm.insertAdjacentElement("beforebegin", viewer);
+  htm.remove();
+});
+
+htm.querySelector(".delete").addEventListener("click", () =&gt; {
+  if(confirm(`Are you sure you want to delete ${oldId}?`)) {
+    deleteCardWithId(oldId);
+    htm.remove();
+  }
+});
+
+return htm;</kettle-prop>
 </kettle-card></div></body></html>
