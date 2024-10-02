@@ -94,7 +94,7 @@ function makeCardEditor(card) {
     h("br"),
     h("input", {className: "args", type: "text", value: card.args ? card.args : ""}),
     h("br"),
-    h("textarea", {rows: 15, cols: 80}, card["text"]),
+    h("textarea", {rows: 15, cols: 80, spellcheck: "false"}, card["text"]),
     h("button", {className: "save"}, "Save"),
     h("button", {className: "delete"}, "Delete")
   );
@@ -178,15 +178,17 @@ function quine() {
   const htm = h("html", {}, 
     h("head", {},
       h("script", {id: "bootstrap", type: "text/javascript"},
-        document.getElementById("code").value.trim()
+        getCard("bootstrap").text
       )
     ),
     h("body", {},
       //Cheap hack to prevent card elements from showing thru
       h("div", {style: { display: "none" }},
-        cardsArray.map(card => cardToHtml(card))
+        cardsArray
+          //The bootstrap card is stored as a script, not a custom html element
+          .filter(card => card.id != "bootstrap")
+          .map(card => cardToHtml(card))
       ),
-      h("textarea", {id: "code", rows: "40", cols: "80", spellcheck: "false"}),
       h("button", {id: "save"}, "Save"),
       h("button", {id: "iframe"}, "Iframe"),
       h("div", {id: "cards"}),
@@ -217,18 +219,24 @@ function doIframe() {
 }
 
 function ready() {
-  document.getElementById("code").value = document.getElementById("bootstrap").innerText;
   document.getElementById("save").addEventListener("click", doSave);
   document.getElementById("iframe").addEventListener("click", doIframe);
   
-  //read all cards
+  //read all cards except for me
   Array.from(document.querySelectorAll("kettle-card"))
     .map(htm => htmlToCard(htm))
     .forEach(card => updateOrAddCard(card));
+  
+  //add myself to the list of cards
+  updateOrAddCard({
+    id: "bootstrap",
+    args: "",
+    text: document.getElementById("bootstrap").innerText
+  });
 
   let cardContainer = document.querySelector("#cards");
   cardsArray.forEach(card => cardContainer.appendChild(makeCardViewer(card)));
   
   document.getElementById("newcard").addEventListener("click", makeNewCard);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"></div><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
