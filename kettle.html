@@ -20,6 +20,15 @@ function updateOrAddCard(card) {
   cardsArray.push(card);
 }
 
+function deleteCardWithId(id) {
+  for(let i = 0; i < cardsArray.length; i++) {
+    if(cardsArray[i].id === id) {
+      cardsArray.splice(i, 1);
+      return;
+    }
+  }
+}
+
 function callCard(id, ...args) {
   //todo: janky, will need to check this is the right scope, and stuff
   const card = getCard(id);
@@ -73,6 +82,8 @@ function makeCardViewer(card) {
 }
 
 function makeCardEditor(card) {
+  const oldId = card.id;
+
   const htm = h("div", {},
     h("input", {className: "id", type: "text", value: card.id}),
     h("br"),
@@ -92,6 +103,7 @@ function makeCardEditor(card) {
       args: argsField.value,
       text: textField.value
     };
+    deleteCardWithId(oldId);
     updateOrAddCard(newCard);
     
     const viewer = makeCardViewer(newCard);
@@ -100,6 +112,27 @@ function makeCardEditor(card) {
   });
   
   return htm;
+}
+
+function makeNewCard() {
+  let newName = "NewCard";
+  if(getCard(newName)) {
+    let disambig = 1;
+    do {
+      newName = `NewCard${disambig}`;
+      disambig++;
+    } while(getCard(newName) && disambig <= 100);
+    if(disambig == 100) {
+      console.log("Can't make new card");
+      return;
+    }
+  }
+  
+  const card = {id: newName, args: "", text: ""};
+  updateOrAddCard(card);
+
+  const editor = makeCardEditor(card);
+  document.getElementById("cards").insertAdjacentElement("beforeend", editor);
 }
 
 function recursiveAssign(target, src) {
@@ -143,7 +176,8 @@ function quine() {
       h("textarea", {id: "code", rows: "40", cols: "80", spellcheck: "false"}),
       h("button", {id: "save"}, "Save"),
       h("button", {id: "iframe"}, "Iframe"),
-      h("div", {id: "cards"})
+      h("div", {id: "cards"}),
+      h("button", {id: "newcard"}, "New Card")
     )
   );
   console.log(htm);
@@ -188,12 +222,10 @@ function ready() {
     .map(htm => htmlToCard(htm))
     .forEach(card => updateOrAddCard(card));
 
-  let target = document.querySelector("#cards");
-  if(!target) {
-    target = h("div", {id: "cards"});
-    document.body.appendChild(target);
-  }
-  cardsArray.forEach(card => target.appendChild(makeCardViewer(card)));
+  let cardContainer = document.querySelector("#cards");
+  cardsArray.forEach(card => cardContainer.appendChild(makeCardViewer(card)));
+  
+  document.getElementById("newcard").addEventListener("click", makeNewCard);
 }
 document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="test">
   <kettle-prop data-prop="args">foo, bar</kettle-prop>
@@ -201,4 +233,7 @@ document.addEventListener("DOMContentLoaded", ready);</script></head><body><div 
 </kettle-card><kettle-card id="mycard">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">undefined</kettle-prop>
-</kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div></body></html>
+</kettle-card><kettle-card id="thisIsMyCard">
+  <kettle-prop data-prop="args">hmmmmm</kettle-prop>
+  <kettle-prop data-prop="text">console.log("welcome to my card");</kettle-prop>
+</kettle-card></div><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button><div id="cards"></div><button id="newcard">New Card</button></body></html>
