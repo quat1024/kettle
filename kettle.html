@@ -7,6 +7,7 @@ function getCard(id) {
   for(const card of cardsArray) {
     if(card.id === id) return card;
   }
+  console.log("WARNING: No card with id " + id);
   return undefined;
 }
 
@@ -66,27 +67,6 @@ function htmlToCard(html) {
     }
   }
   return card;
-}
-
-function makeNewCard() {
-  let newName = "NewCard";
-  if(getCard(newName)) {
-    let disambig = 1;
-    do {
-      newName = `NewCard${disambig}`;
-      disambig++;
-    } while(getCard(newName) && disambig <= 100);
-    if(disambig == 100) {
-      console.log("Can't make new card");
-      return;
-    }
-  }
-  
-  const card = {id: newName, args: "", text: ""};
-  updateOrAddCard(card);
-
-  const editor = makeCardEditor(card);
-  document.getElementById("cards").insertAdjacentElement("beforeend", editor);
 }
 
 function recursiveAssign(target, src) {
@@ -183,6 +163,7 @@ function ready() {
   saveButton.insertAdjacentElement("afterend", iframeButton);
 
   //new card button
+  const makeNewCard = cardCallable("makeNewCard");
   const newButton = h("button", {}, "New Card");
   newButton.addEventListener("click", makeNewCard);
   document.body.insertAdjacentElement("beforeend", newButton);
@@ -288,4 +269,26 @@ htm.querySelector(".delete").addEventListener("click", () =&gt; {
 });
 
 return htm;</kettle-prop>
+</kettle-card><kettle-card id="makeNewCard">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
+
+let newName = "NewCard";
+if(getCard(newName)) {
+  let disambig = 1;
+  do {
+    newName = `NewCard${disambig}`;
+    disambig++;
+  } while(getCard(newName) &amp;&amp; disambig &lt;= 100);
+  if(disambig == 100) {
+    console.log("Can't make new card");
+    return;
+  }
+}
+
+const card = {id: newName, args: "", text: ""};
+updateOrAddCard(card);
+
+const editor = makeCardEditor(card);
+document.getElementById("cards").insertAdjacentElement("beforeend", editor);</kettle-prop>
 </kettle-card></div></body></html>
