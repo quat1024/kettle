@@ -1,6 +1,11 @@
 <!DOCTYPE html>
-<html><head><script id="bootstrap" type="text/javascript">//TODO: Bad data structure.
+<html><head><script id="bootstrap" type="text/javascript">class KettleCard extends HTMLElement {}
+customElements.define("kettle-card", KettleCard);
 
+class KettleProp extends HTMLElement {}
+customElements.define("kettle-prop", KettleProp);
+
+//TODO: Bad data structure.
 let cardsArray = [];
 
 function getCard(id) {
@@ -30,21 +35,11 @@ function deleteCardWithId(id) {
   }
 }
 
-function callCard(id, ...args) {
-  return cardCallable(id)(...args);
-}
-
 function cardCallable(id) {
   //todo: janky, will need to check this is the right scope, and stuff
   const card = getCard(id);
   return eval(`(${card["args"]}) => { ${card["text"]} }`);
 }
-
-class KettleCard extends HTMLElement {}
-customElements.define("kettle-card", KettleCard);
-
-class KettleProp extends HTMLElement {}
-customElements.define("kettle-prop", KettleProp);
 
 function cardToHtml(card) {
   const kvs = [];
@@ -95,48 +90,8 @@ function h(elem, attrs, ...children) {
   return e;
 }
 
-function quine() {
-  const htm = h("html", {}, 
-    h("head", {},
-      h("script", {id: "bootstrap", type: "text/javascript"},
-        getCard("bootstrap").text
-      )
-    ),
-    h("body", {},
-      //Cheap hack to prevent card elements from showing thru
-      h("div", {style: { display: "none" }},
-        cardsArray
-          //The bootstrap card is stored as a script, not a custom html element
-          .filter(card => card.id != "bootstrap")
-          .map(card => cardToHtml(card))
-      )
-    )
-  );
-  return "<!DOCTYPE html>\n" + htm.outerHTML;
-}
-
-function doSave() {
-  let url = window.URL.createObjectURL(new Blob([quine()]));
-  let a = h("a", {href: url, download: "kettle.html"});
-  a.click();
-  window.URL.revokeObjectURL(url);
-}
-
-function doIframe() {
-  let bag = h("div", {},
-    h("br"),
-    h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
-    h("button", {}, "Close")
-  );
-  
-  bag.querySelector("button").addEventListener("click", () => {
-    if(confirm("Are you sure?")) bag.remove();
-  });
-  document.body.appendChild(bag);
-}
-
 function ready() {
-  //read all cards except for me
+  //read all cards (won't contain me, since i'm a script)
   Array.from(document.querySelectorAll("kettle-card"))
     .map(htm => htmlToCard(htm))
     .forEach(card => updateOrAddCard(card));
@@ -155,23 +110,19 @@ function ready() {
   
   //add quine buttons
   const saveButton = h("button", {}, "Save Html");
-  saveButton.addEventListener("click", doSave);
+  saveButton.addEventListener("click", () => cardCallable("save")());
   document.body.insertAdjacentElement("afterbegin", saveButton);
 
   const iframeButton = h("button", {}, "Iframe");
-  iframeButton.addEventListener("click", () => callCard("doIframe"));
+  iframeButton.addEventListener("click", () => cardCallable("iframe")());
   saveButton.insertAdjacentElement("afterend", iframeButton);
 
   //new card button
-  const makeNewCard = cardCallable("makeNewCard");
   const newButton = h("button", {}, "New Card");
-  newButton.addEventListener("click", makeNewCard);
+  newButton.addEventListener("click", () => cardCallable("makeNewCard")());
   document.body.insertAdjacentElement("beforeend", newButton);
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="logQuine">
-  <kettle-prop data-prop="args"></kettle-prop>
-  <kettle-prop data-prop="text">console.log(callCard("quine"));</kettle-prop>
-</kettle-card><kettle-card id="quine">
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><div style="display: none;"><kettle-card id="quine">
   <kettle-prop data-prop="args"></kettle-prop>
   <kettle-prop data-prop="text">const htm = h("html", {}, 
   h("head", {},
@@ -190,20 +141,6 @@ document.addEventListener("DOMContentLoaded", ready);</script></head><body><div 
   )
 );
 return "&lt;!DOCTYPE html&gt;\n" + htm.outerHTML;</kettle-prop>
-</kettle-card><kettle-card id="doIframe">
-  <kettle-prop data-prop="args"></kettle-prop>
-  <kettle-prop data-prop="text">let quine = cardCallable("quine");
-
-let bag = h("div", {},
-  h("br"),
-  h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
-  h("button", {}, "Close")
-);
-
-bag.querySelector("button").addEventListener("click", () =&gt; {
-  if(confirm("Are you sure?")) bag.remove();
-});
-document.body.appendChild(bag);</kettle-prop>
 </kettle-card><kettle-card id="makeCardViewer">
   <kettle-prop data-prop="args">card</kettle-prop>
   <kettle-prop data-prop="text">const makeCardEditor = cardCallable("makeCardEditor");
@@ -291,4 +228,26 @@ updateOrAddCard(card);
 
 const editor = makeCardEditor(card);
 document.getElementById("cards").insertAdjacentElement("beforeend", editor);</kettle-prop>
+</kettle-card><kettle-card id="save">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">const quine = cardCallable("quine");
+
+let url = window.URL.createObjectURL(new Blob([quine()]));
+let a = h("a", {href: url, download: "kettle.html"});
+a.click();
+window.URL.revokeObjectURL(url);</kettle-prop>
+</kettle-card><kettle-card id="iframe">
+  <kettle-prop data-prop="args"></kettle-prop>
+  <kettle-prop data-prop="text">let quine = cardCallable("quine");
+
+let bag = h("div", {},
+  h("br"),
+  h("iframe", {style: {width: "95vw", height: "95vh"}, srcdoc: quine()}),
+  h("button", {}, "Close")
+);
+
+bag.querySelector("button").addEventListener("click", () =&gt; {
+  if(confirm("Are you sure?")) bag.remove();
+});
+document.body.appendChild(bag);</kettle-prop>
 </kettle-card></div></body></html>
