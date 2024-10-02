@@ -30,18 +30,18 @@ function doSave() {
 
 function doIframe() {
   let br = document.createElement("br");
-  document.appendChild(br);
+  document.body.appendChild(br);
 
   let iframe = document.createElement("iframe");
   iframe.width = "90vw";
   iframe.height = "90vh";
   iframe.srcdoc = quine();
-  document.appendChild(iframe);
+  document.body.appendChild(iframe);
   
   let closeButton = document.createElement("button");
   closeButton.innerText = "Close";
   closeButton.addEventListener("click", () => { iframe.remove(); closeButton.remove(); br.remove(); });
-  document.appendChild(closeButton);
+  document.body.appendChild(closeButton);
 }
 
 function ready() {
