@@ -1,5 +1,57 @@
 <!DOCTYPE html>
-<html><head><script id="bootstrap" type="text/javascript">function recursiveAssign(target, src) {
+<html><head><script id="bootstrap" type="text/javascript">//TODO: Bad data structure.
+
+let cardsArray = [];
+
+function getCard(id) {
+  for(const card of cardsArray) {
+    if(card.id === id) return card;
+  }
+  return undefined;
+}
+
+function updateOrAddCard(card) {
+  for(let i = 0; i < cardsArray.length; i++) {
+    if(cardsArray[i].id === card.id) {
+      cardsArray[i] = card;
+      return;
+    }
+  }
+  cardsArray.push(card);
+}
+
+class KettleCard extends HTMLElement {}
+customElements.define("kettle-card", KettleCard);
+
+class KettleProp extends HTMLElement {}
+customElements.define("kettle-prop", KettleProp);
+
+function cardToHtml(card) {
+  const kvs = [];
+  for(const prop in card) {
+    if(prop === "id") continue;
+    kvs.push("\n  ");
+    kvs.push(h("kettle-prop", {"data-prop": prop}, card[prop]));
+  }
+  kvs.push("\n");
+  const htm = h("kettle-card", {id: card.id}, kvs);
+  console.log("saved card", htm);
+  return htm;
+}
+
+function htmlToCard(html) {
+  const card = {};
+  card.id = html.id;
+  for(const child of Array.from(html.children)) {
+    if(child instanceof KettleProp) {
+      card[child["data-prop"]] = child.innerText;
+    }
+  }
+  console.log("parsed card", card);
+  return card;
+}
+
+function recursiveAssign(target, src) {
   for(const key in src) {
     if(typeof src[key] == "object") {
       target[key] = target[key] || {};
@@ -28,7 +80,7 @@ function quine() {
       )
     ),
     h("body", {},
-      h("textarea", {id: "code", rows: "40", cols: "80"}),
+      h("textarea", {id: "code", rows: "40", cols: "80", spellcheck: "false"}),
       h("button", {id: "save"}, "Save"),
       h("button", {id: "iframe"}, "Iframe")
     )
@@ -62,5 +114,12 @@ function ready() {
   document.getElementById("code").value = document.getElementById("bootstrap").innerText;
   document.getElementById("save").addEventListener("click", doSave);
   document.getElementById("iframe").addEventListener("click", doIframe);
+  
+  const card = {id: "mycard", foo: "bar", baz: 69.420};
+  console.log(card);
+  console.log(cardToHtml(card));
+  console.log(cardToHtml(card).outerHTML);
+  console.log(htmlToCard(cardToHtml(card)));
+  
 }
-document.addEventListener("DOMContentLoaded", ready);</script></head><body><textarea id="code" rows="40" cols="80"></textarea><button id="save">Save</button><button id="iframe">Iframe</button></body></html>
+document.addEventListener("DOMContentLoaded", ready);</script></head><body><textarea id="code" rows="40" cols="80" spellcheck="true"></textarea><button id="save">Save</button><button id="iframe">Iframe</button></body></html>
