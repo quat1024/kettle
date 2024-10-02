@@ -24,7 +24,7 @@ function spawn(...command: string[]): Promise<number> {
   })
 }
 
-let latestVersion = parseInt(await readToString("import-download-last-version.txt"));
+let latestVersion = parseInt(await readToString("import-download-next-version.txt"));
 const dl = "C:/Users/quat/Downloads/kettle(###).html";
 const dest = "./kettle.html";
 
@@ -35,9 +35,9 @@ while(true) {
     break;
   }
   
+  await fs.writeFile("import-download-next-version.txt", "" + (latestVersion + 1));
   await spawn("git", "add", ".");
   await spawn("git", "commit", "-m", `revision ${latestVersion}`);
   
   latestVersion++;
-  await fs.writeFile("import-download-last-version.txt", "" + latestVersion);
 }
